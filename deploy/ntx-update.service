@@ -1,0 +1,16 @@
+[Unit]
+Description=ntx: pull, verify and deploy the latest commit
+After=network-online.target
+Wants=network-online.target
+OnFailure=ntx-alert-crash@%n.service
+
+[Service]
+Type=oneshot
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+ExecStart=/home/ntx/ntx/deploy/update.sh
+# A deploy that hangs must not hold the lock forever.
+TimeoutStartSec=900
+Nice=5
+StandardOutput=journal
+StandardError=journal

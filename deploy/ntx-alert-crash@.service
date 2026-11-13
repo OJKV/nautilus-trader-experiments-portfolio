@@ -1,0 +1,8 @@
+[Unit]
+Description=push an alert when %i failed
+
+[Service]
+Type=oneshot
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+ExecStart=/home/ntx/ntx/.venv/bin/python -m ntx.obs.alerts --message "%i entered a failed state"

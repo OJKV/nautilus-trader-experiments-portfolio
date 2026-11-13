@@ -1,0 +1,78 @@
+# --- agent / session state ---
+.claude
+.remember
+
+# --- docs (ADR-0015) ---
+# Design, strategy, failure-log and review docs ARE tracked: a cloud agent that
+# cannot read them re-derives decisions and re-introduces solved bugs.
+# Only what describes the live machine stays local.
+docs/private/
+docs/21-hetzner-setup-guide.md
+docs/22-vps-options-2026.md
+# Local agent review notes (per owner request 2026-10-11): never committed.
+docs/muse/
+
+# --- secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+wg*.conf
+
+# --- data & artifacts (large, regenerable) ---
+# Anchored with a leading slash: a bare `data/` also ignored src/ntx/data/, so
+# the whole data pipeline would have been missing from the first commit (C-03).
+/data/
+/reports/
+/logs/
+*.parquet
+*.zip
+*.db
+/data/catalog/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.uv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- os / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# local test-gate control files
+.test-gate.json
+.test-gate-ok
+
+# Local operational notes and guides (keep working copies private).
+/CLAUDE.md
+/docs/03-deployment.md
+/docs/06a-agent-guide.md
+/docs/06b-human-guide.md
+/docs/19-review-guide.md
+/docs/23-live-observability.md
+/docs/24-continuous-deployment.md
+/docs/25-live-deploy-runbook.md
+/docs/26-phone-alerts.md
+/docs/27-open-rehearsals.md
+
+# Keep detailed local research and operational notes private.
+/docs/*
+!/docs/strategies/
+/docs/strategies/*
+!/docs/strategies/S003-donchian-breakout.md
+!/docs/strategies/S003-explained.md
+
+# Local account-specific studies and machine guide.
+/src/ntx/experiments/capital_leverage.py
+/src/ntx/experiments/carry_study.py
+/scripts/soak.sh
+!/docs/RESEARCH_REFERENCE.md

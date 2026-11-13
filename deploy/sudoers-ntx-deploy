@@ -1,0 +1,36 @@
+# Publication template: replace example-operator with your own administrator account.
+# /etc/sudoers.d/ntx-deploy    (install with: sudo install -m 440 ...)
+#
+# Two narrowly scoped rules, no wildcards:
+#
+# 1. the admin account (and therefore an agent with its SSH key) may run the
+#    deploy and the read-only health check as the bot's own user;
+# 2. the bot's user may restart ONLY THE DEMO SOAK. A push to GitHub runs as this
+#    user, so it must not be able to reach the live switches: no ntx-s003 here,
+#    and the arming file lives outside the checkout, root-owned (L2-01).
+#    Live start/stop belongs to the admin account via /etc/sudoers.d/ntx-ops.
+#
+# It grants no shell, no package management and no access to any other unit.
+example-operator  ALL=(ntx)  NOPASSWD: /home/ntx/ntx/deploy/update.sh, /home/ntx/ntx/scripts/vps_check.sh, \
+                        /home/ntx/ntx/deploy/deploy-live.sh, /home/ntx/ntx/scripts/drill_restart.sh
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl restart ntx-soak.service
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl stop ntx-soak.service
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl start ntx-soak.service
+# A unit that hit its StartLimitBurst refuses every later start until the failure
+# is cleared. The drills stop and start the soak, and five cycles inside the
+# 30-minute window left it down for good with no way back that did not need the
+# admin password (2026-09-24). Clearing a failed state starts nothing on its own.
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl reset-failed ntx-soak.service
+# S004 is a demo bot on its own sub-account, deployed like the soak and gated the
+# same way: pull, test on the box, restart, health-check, roll back (R57). Without
+# these it was in MANAGED_UNITS but could not actually be restarted, which is a
+# deploy that reports success while changing nothing (F072).
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl restart ntx-s004-demo2.service
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl stop ntx-s004-demo2.service
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl start ntx-s004-demo2.service
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl reset-failed ntx-s004-demo2.service
+# The dashboard is a long-lived process, so new code on disk is not new code in
+# memory: it served the previous commit's UI after every deploy. Restarting it is
+# read-only, loopback-only and holds no position -- nothing about it can move
+# money, and a failed restart must never fail a deploy.
+ntx ALL=(root) NOPASSWD: /usr/bin/systemctl restart ntx-ui.service

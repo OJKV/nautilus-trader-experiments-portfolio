@@ -1,0 +1,43 @@
+[Unit]
+# NTX Monitor, the read-only dashboard, on 127.0.0.1 only.
+#
+# It used to be started by hand over SSH, which meant it died with whatever
+# session started it -- the owner hit "the UI is down" four times in two days,
+# and every time the bots were fine and only this process was missing. A thing
+# somebody depends on daily is a service, not a command you remember to run.
+#
+# Loopback only: access is via `make ui-vps`, which port-forwards over SSH. The
+# dashboard is read-only, but it shows account balances and positions, and this
+# box is shared with another project.
+Description=NTX Monitor (read-only dashboard on 127.0.0.1:8788)
+After=network-online.target
+Wants=network-online.target
+# Retry forever. Installed 2026-09-26 while a hand-started copy still held
+# 8788: the unit lost the bind ten times in 100 s, hit the start limit, and sat
+# `failed` for sixteen hours. The dashboard only looked alive because the very
+# process this unit exists to replace was still serving it. A read-only
+# dashboard has no reason to ever stop trying -- and "gave up quietly" is the
+# exact failure this unit was written to end.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+ExecStart=/home/ntx/ntx/.venv/bin/python -m ntx.ui --port 8788
+Restart=always
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

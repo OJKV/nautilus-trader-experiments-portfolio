@@ -1,0 +1,85 @@
+[Unit]
+Description=ntx S003 on OKX LIVE (real money)
+After=network-online.target time-sync.target
+Wants=network-online.target
+# Never give up (owner, 2026-11-04, after F084): a start limit turned a 19-min
+# glitch into a 38-h outage. RestartSec spaces the retries; exit 2 (a refusal) still
+# stays down; a crash loop is paged by the alerter's stale-snapshot check.
+StartLimitIntervalSec=0
+# 10, not 5: RestartSec=120 caps a genuine crash loop at 15 starts in this
+# window, so 10 still catches one -- while a normal run of deploys, each a
+# stop+start, no longer locks the bot out of restarting itself.
+StartLimitBurst=10
+OnFailure=ntx-alert-crash@%n.service
+# The live checkout owns CODE ONLY; everything the bot reads or writes lives in
+# the demo checkout and reaches this one through a symlink that
+# scripts/setup_live_checkout.sh creates. If either is missing the unit must FAIL
+# loudly -- ConditionPathExists would "succeed" by skipping the start, which is
+# the worst outcome for a money unit (R70).
+AssertPathExists=/home/ntx/ntx-live/.env
+AssertPathIsDirectory=/home/ntx/ntx/data
+
+[Service]
+# The venue is pinned in the unit, not left to .env: the file holds BOTH keys, so
+# one wrong word there would otherwise decide which account trades. Arming is the
+# second, independent catch (python -m ntx.live.arm).
+Environment=NTX_VENUE=okx_live
+# Both units read the same .env; the soak's experiment must not leak into live.
+# The attached stop changes execution semantics (intrabar stops) and its
+# comparison run is disputed (T-05) -- it stays OFF here until re-gated.
+Environment=NTX_ATTACH_STOP_AT_ENTRY=false
+# R44 rehearsal (docs/27): the demo units run with this ON. Pinned OFF here so a
+# `.env` line cannot promote it to real money; promotion is editing THIS line
+# after the demo evidence, nothing else (E3-02/L3-05).
+Environment=NTX_GENERATE_MISSING_ORDERS=0
+# NTX_KEYSET is deliberately NOT pinned here. The node passes its strategy id to
+# creds(), which refuses every key set but S003's own on this unit -- a leaked
+# `NTX_KEYSET=demo2` is a refusal to start, never a different account. A pin
+# (`=S003`) would also make code older than 2026-10-07 refuse to start, and a
+# crash restart between installing this file and `make deploy-live` would run
+# exactly that code.
+# ONE data directory for both bots. The files are already namespaced per bot
+# (journal.db vs journal-demo-S003.db, S003-live.json vs S003-demo.json,
+# NTX-003-live.lock vs NTX-003-demo.lock), the monitor reads them all from one
+# place, and `data/LIVE_ARMED` -- the switch that permits real orders -- lives
+# here too: /etc/ntx does not exist on this box, so ntx.live.arm falls back to
+# <data dir>/LIVE_ARMED. Pointing this at the live checkout would silently
+# disarm the bot and orphan the journal (R29, R56).
+Environment=NTX_DATA_DIR=/home/ntx/ntx/data
+Type=simple
+User=ntx
+# Its OWN checkout. /home/ntx/ntx is the DEMO checkout, which ntx-update.timer
+# fast-forwards every minute; nothing advances this one except
+# `make deploy-live`. Before this split both bots ran from /home/ntx/ntx, so the
+# deployer had to freeze for the soak too whenever live was up (docs/24 §1b).
+#
+# There is deliberately NO EnvironmentFile=/home/ntx/ntx/.env here. Measured on
+# the box 2026-09-25: four risk parameters carry an inline `# ...` comment, which
+# systemd keeps as part of the value (it only honours `#` at the start of a
+# line) -- NTX_RISK_EQUITY_PCT would arrive as a string pydantic cannot parse and
+# the node would refuse to start; and both API passphrases contain characters
+# systemd's EnvironmentFile parser treats as quoting, which would hand OKX a
+# corrupted passphrase. The .env is read the way it has always been read, by
+# pydantic through the checkout's own .env -- which here is the symlink the
+# AssertPathExists above guarantees.
+WorkingDirectory=/home/ntx/ntx-live
+ExecStart=/home/ntx/ntx-live/.venv/bin/python -m ntx.live.node --strategy S003
+# The node now exits non-zero on an internal shutdown (L-01), and exit 2 means a
+# deliberate refusal (lock held, not armed) that restarting cannot fix.
+Restart=always
+RestartPreventExitStatus=2
+RestartSec=120
+KillSignal=SIGTERM
+TimeoutStopSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

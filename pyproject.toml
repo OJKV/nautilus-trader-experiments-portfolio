@@ -1,0 +1,42 @@
+[project]
+name = "ntx"
+version = "0.1.0"
+description = "NautilusTrader crypto perp trading system (OKX)"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "nautilus_trader==1.230.0",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "httpx>=0.27",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "python-dotenv>=1.0",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.6"]
+ui  = ["fastapi>=0.115", "uvicorn>=0.30"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ntx"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: touches a live venue; excluded by default",
+    "vpn: requires the VPN to be on (authenticated OKX from Kazakhstan)",
+]
+addopts = "-m 'not live and not vpn' -q"

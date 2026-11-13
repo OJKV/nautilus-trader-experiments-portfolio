@@ -1,0 +1,14 @@
+[Unit]
+Description=ntx alerter (journal criticals, stale snapshot) + dead-man ping
+After=network-online.target
+# No OnFailure= on purpose: the alerter alerting about itself was F052. A crash
+# pushes `alerter_crashed` from inside, and the dead-man switch covers the rest.
+
+[Service]
+Type=oneshot
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+ExecStart=/home/ntx/ntx/.venv/bin/python -m ntx.obs.alerts
+# A oneshot has no start timeout by default: one hung pass (a locked journal, a
+# stuck socket) and the timer never fires again (O2-06). Below the 5-min cadence.
+TimeoutStartSec=4min

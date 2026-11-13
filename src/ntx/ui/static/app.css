@@ -1,0 +1,137 @@
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --fg: #1b1f24;
+  --muted: #667085;
+  --border: #e3e6ea;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --fail: #cf222e;
+  --unknown: #8c959f;
+  --demo: #0969da;
+  --live: #1a7f37;
+  --line: #0969da;
+  --fail-bg: #ffebe9;
+  --warn-bg: #fff8c5;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --border: #30363d;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --fail: #f85149;
+    --unknown: #6e7681;
+    --demo: #58a6ff;
+    --live: #3fb950;
+    --line: #58a6ff;
+    --fail-bg: #3b1219;
+    --warn-bg: #3a2d0b;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+code, pre, .n, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+.top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card);
+  position: sticky; top: 0; z-index: 2;
+}
+.brand { font-weight: 600; }
+.ro { font-size: 11px; color: var(--muted); border: 1px solid var(--border);
+      border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+select { font: inherit; color: var(--fg); background: var(--bg);
+         border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
+.botsel { display: flex; gap: 6px; align-items: center; }
+
+.badge { font-weight: 700; letter-spacing: .06em; padding: 4px 12px; border-radius: 6px;
+         color: #fff; font-size: 16px; }
+.badge-DEMO { background: var(--demo); }
+.badge-LIVE { background: var(--live); }
+.badge-STALE, .badge-NO-SNAPSHOT { background: var(--fail); }
+.badge-unknown { background: var(--unknown); }
+
+.banner { margin: 12px 16px 0; padding: 10px 14px; border-radius: 8px;
+          background: var(--fail-bg); color: var(--fail); font-weight: 600;
+          border: 1px solid var(--fail); }
+.banner-err { font-weight: 400; }
+
+main { padding: 12px 16px; display: grid; gap: 12px;
+       grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
+.kpis { grid-column: 1 / -1; display: grid; gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.kpi, .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+.kpi { padding: 10px 14px; }
+.kpi-label { color: var(--muted); font-size: 12px; }
+.kpi-label .dim { opacity: .75; }
+.kpi-val { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi-val.unavail { font-size: 16px; color: var(--muted); font-style: italic; }
+/* The gloss spans the whole row: the two equity figures are the one thing on
+   this page that has been misread, so its explanation is never a tooltip. */
+.gloss { grid-column: 1 / -1; margin: -4px 2px 0; }
+.small-val { font-size: 16px; }
+.card { padding: 12px 14px; min-width: 0; }
+.card h2 { font-size: 14px; margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+
+body.is-stale .snap, body.is-stale #positions td, body.is-stale #instruments td {
+  opacity: .45; text-decoration: line-through dotted;
+}
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: left;
+         white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tr.row-fail td { background: var(--fail-bg); color: var(--fail); font-weight: 600; }
+tr.row-warn td { background: var(--warn-bg); }
+.empty { color: var(--muted); font-style: italic; }
+
+.pos { color: var(--ok); }
+.neg { color: var(--fail); }
+
+.health { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.health li { display: flex; gap: 8px; align-items: baseline; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 10px; transform: translateY(1px); }
+.st-ok { background: var(--ok); }
+.st-warn { background: var(--warn); }
+.st-fail { background: var(--fail); }
+.st-unknown { background: var(--unknown); }
+.hname { font-weight: 600; min-width: 11em; }
+.hdetail { color: var(--muted); overflow-wrap: anywhere; }
+.pill { font-size: 11px; padding: 1px 8px; border-radius: 10px; color: #fff; text-transform: uppercase; }
+
+.chart svg { width: 100%; height: 180px; display: block; }
+.chart .axis { stroke: var(--border); }
+.chart .lbl { fill: var(--muted); font-size: 10px; }
+.chart .ln { fill: none; stroke: var(--line); stroke-width: 1.8; }
+
+.logs { margin: 0; max-height: 320px; overflow: auto; font-size: 11.5px;
+        white-space: pre-wrap; overflow-wrap: anywhere; }
+.lv-ERROR, .lv-CRITICAL { color: var(--fail); }
+.lv-WARNING { color: var(--warn); }
+
+footer { padding: 8px 16px 24px; }
+
+@media (max-width: 600px) {
+  .kpi-val { font-size: 20px; }
+  .hname { min-width: 0; }
+  .health li { flex-wrap: wrap; }
+}
+
+/* The percentage beside a PnL figure: same colour, quieter, so the dollar
+   amount stays the headline and the relative number reads as context. */
+.kpi-sub { font-size: 0.72em; opacity: 0.85; font-weight: 500; }

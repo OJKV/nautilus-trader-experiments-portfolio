@@ -1,0 +1,9 @@
+[Unit]
+Description=nightly ntx journal backup
+
+[Timer]
+OnCalendar=*-*-* 02:17:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

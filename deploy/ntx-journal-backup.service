@@ -1,0 +1,12 @@
+[Unit]
+Description=back up the ntx SQLite journals
+# The script exits non-zero when it backs up nothing or a copy fails its
+# integrity check; this is what turns that into a push (O3-08).
+OnFailure=ntx-alert-crash@%n.service
+
+[Service]
+Type=oneshot
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+ExecStart=/home/ntx/ntx/scripts/journal_backup.sh
+TimeoutStartSec=30min

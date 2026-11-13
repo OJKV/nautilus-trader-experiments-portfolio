@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NTX Monitor</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">NTX Monitor <span class="ro">read-only</span></div>
+  <label class="botsel">Bot
+    <select id="bot"></select>
+  </label>
+  <span id="badge" class="badge badge-unknown">…</span>
+  <span id="age" class="muted"></span>
+  <span id="updated" class="muted small"></span>
+</header>
+
+<div id="stale-banner" class="banner" hidden>
+  STALE: this snapshot is old, so the node may be down or frozen. The numbers
+  below are the last known values, not live ones.
+</div>
+<div id="error-banner" class="banner banner-err" hidden></div>
+
+<main>
+  <section class="kpis">
+    <div class="kpi"><div class="kpi-label">Account balance <span class="dim">— money really there</span></div><div id="k-account" class="kpi-val">–</div><div id="k-account-note" class="muted small"></div></div>
+    <div class="kpi"><div class="kpi-label">Sizing basis <span class="dim">— what trades are sized from</span></div><div id="k-sizing" class="snap kpi-val">–</div><div id="k-sizing-note" class="muted small"></div></div>
+    <div class="kpi"><div class="kpi-label">Unrealized (open now) <span class="muted small">— % of sizing basis</span></div><div id="k-unreal" class="snap kpi-val">–</div></div>
+    <div class="kpi"><div class="kpi-label">Net PnL (closed, all time) <span class="muted small">— % of sizing basis</span></div><div id="k-net" class="kpi-val">–</div></div>
+    <div class="kpi"><div class="kpi-label">Unprotected</div><div id="k-unprot" class="snap kpi-val">–</div></div>
+    <div class="kpi"><div class="kpi-label">Trades · win · PF</div><div id="k-trades" class="kpi-val small-val">–</div></div>
+    <div class="kpi"><div class="kpi-label">Trading</div><div id="k-trading" class="snap kpi-val small-val">–</div></div>
+  </section>
+
+  <p id="equity-gloss" class="gloss muted small"></p>
+
+  <section class="card">
+    <h2>Closed PnL by period <span class="muted small">— by close time, UTC; % of sizing basis</span></h2>
+    <div class="scroll"><table id="periods"><thead><tr>
+      <th>Period</th><th class="n">Closed</th><th class="n">Win rate</th><th class="n">Net PnL</th><th class="n">Fees</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Health <span id="h-overall" class="pill"></span></h2>
+    <ul id="health" class="health"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Open positions</h2>
+    <div class="scroll"><table id="positions"><thead><tr>
+      <th>Instrument</th><th>Side</th><th class="n">Qty</th><th class="n">Entry</th>
+      <th class="n">Mark</th><th class="n">Stop</th><th class="n">TSL</th>
+      <th class="n">Bars</th><th class="n">uPnL $</th><th>Protection</th>
+    </tr></thead><tbody></tbody></table></div>
+    <p id="pos-note" class="muted small"></p>
+  </section>
+
+  <section class="card">
+    <h2>Equity <span id="eq-meta" class="muted small"></span></h2>
+    <div id="equity" class="chart"></div>
+  </section>
+
+  <section class="card">
+    <h2>Instruments</h2>
+    <div class="scroll"><table id="instruments"><thead><tr>
+      <th>Instrument</th><th class="n">Last close</th><th class="n">Live bar age</th>
+      <th class="n">Bars seen</th><th>Warm</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Recent trades</h2>
+    <div class="scroll"><table id="trades"><thead><tr>
+      <th>Closed</th><th>Instrument</th><th>Side</th><th class="n">Entry</th>
+      <th class="n">Exit</th><th class="n">Net $</th><th>Reason</th><th class="n">Bars</th>
+      <th class="n">Gap ms</th>
+    </tr></thead><tbody></tbody></table></div>
+    <p id="stats-extra" class="muted small"></p>
+  </section>
+
+  <section class="card">
+    <h2>Recent events</h2>
+    <div class="scroll"><table id="events"><thead><tr>
+      <th>Time</th><th>Kind</th><th>Severity</th><th>Detail</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Log tail
+      <select id="loglevel">
+        <option value="">all</option>
+        <option value="INFO">INFO+</option>
+        <option value="WARNING" selected>WARNING+</option>
+        <option value="ERROR">ERROR+</option>
+      </select>
+    </h2>
+    <pre id="logs" class="logs"></pre>
+  </section>
+
+  <section class="card">
+    <h2>Backtest runs</h2>
+    <div class="scroll"><table id="backtests"><thead><tr>
+      <th>Created</th><th>Label</th><th>TF</th><th>Window</th><th class="n">Trades</th>
+      <th class="n">Sharpe</th><th class="n">PF</th><th class="n">Max DD %</th><th>Source</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+</main>
+<footer class="muted small">Polls every 5 s. Controls are CLI only: <code>python -m ntx.ops.flatten</code></footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

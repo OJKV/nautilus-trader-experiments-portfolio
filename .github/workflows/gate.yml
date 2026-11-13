@@ -1,0 +1,42 @@
+# The gate that runs before anything reaches the VPS.
+# Offline only: no keys, no venue, no network to OKX. The box re-runs the tests
+# itself in deploy/update.sh -- this is the signal that a commit is worth pulling.
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync the locked environment
+        run: uv sync --frozen --all-extras
+
+      - name: ruff
+        run: uv run ruff check src tests
+
+      - name: pytest
+        run: uv run pytest -q
+
+      # The deploy scripts are the one piece of code no test imports, and a
+      # syntax error in update.sh breaks the machine that would otherwise fix it.
+      - name: shell syntax
+        run: bash -n deploy/update.sh scripts/journal_backup.sh scripts/vps_check.sh

@@ -1,0 +1,38 @@
+# Publication template: replace example-operator with your own administrator account.
+# /etc/sudoers.d/ntx-ops      (install with: sudo install -m 440 ... && sudo visudo -c)
+#
+# Lets the admin account -- and therefore an agent holding its SSH key -- OPERATE
+# the bot's own units without a password, while granting nothing else.
+#
+# Deliberately granted: start / stop / restart of the five ntx units, and
+# daemon-reload so a unit file change takes effect.
+#
+# Deliberately NOT granted, because each is a path to root or to money:
+#   * installing or editing unit files (/etc/systemd/system is root-owned, and
+#     the account that owns the checkout must never be able to write a unit);
+#   * `enable` / `disable` (what survives a reboot is an operator's decision);
+#   * anything touching ARGUS, sshd, users, packages or the firewall;
+#   * a shell as root, or any command with a wildcard in it.
+#
+# Everything here is reversible with one line: sudo rm /etc/sudoers.d/ntx-ops
+
+Cmnd_Alias NTX_OPS = /usr/bin/systemctl start ntx-soak.service, \
+                     /usr/bin/systemctl stop ntx-soak.service, \
+                     /usr/bin/systemctl restart ntx-soak.service, \
+                     /usr/bin/systemctl start ntx-s003.service, \
+                     /usr/bin/systemctl stop ntx-s003.service, \
+                     /usr/bin/systemctl restart ntx-s003.service, \
+                     /usr/bin/systemctl start ntx-alert.timer, \
+                     /usr/bin/systemctl stop ntx-alert.timer, \
+                     /usr/bin/systemctl restart ntx-alert.timer, \
+                     /usr/bin/systemctl start ntx-update.timer, \
+                     /usr/bin/systemctl stop ntx-update.timer, \
+                     /usr/bin/systemctl restart ntx-update.timer, \
+                     /usr/bin/systemctl start ntx-journal-backup.timer, \
+                     /usr/bin/systemctl stop ntx-journal-backup.timer, \
+                     /usr/bin/systemctl restart ntx-journal-backup.timer, \
+                     /usr/bin/systemctl start ntx-journal-backup.service, \
+                     /usr/bin/systemctl start ntx-alert.service, \
+                     /usr/bin/systemctl daemon-reload
+
+example-operator ALL=(root) NOPASSWD: NTX_OPS

@@ -1,0 +1,15 @@
+[Unit]
+Description=ntx: check GitHub for new commits every minute
+
+[Timer]
+OnBootSec=2min
+# 1 minute while we are actively building. A check that finds nothing costs one
+# `git fetch` (a few KB) and exits in well under a second -- the expensive path
+# (uv sync + the full test suite, ~2 min) only runs when the SHA actually moved.
+# Raise this to 5min once changes become rare.
+OnUnitActiveSec=1min
+AccuracySec=15s
+Unit=ntx-update.service
+
+[Install]
+WantedBy=timers.target

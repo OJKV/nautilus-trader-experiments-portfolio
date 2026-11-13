@@ -1,0 +1,58 @@
+[Unit]
+# S004 cross-sectional momentum, on the SECOND demo sub-account (nautilus2).
+#
+# It FAILED its out-of-sample gate (PF after funding 1.07 vs 1.15, fee drag 64%
+# of gross, breadth 4/10). It runs anyway, and only for this: it trades about
+# 1.36 times a day against S003's 0.83, so entries, venue stops, fills, adoption
+# and the watchdog are exercised far more often. Every real defect found in the
+# week before go-live came from the execution path, not from a signal.
+#
+# registry.DEMO_ONLY makes the live node refuse this strategy outright, so this
+# unit cannot be turned into a money unit by editing NTX_VENUE.
+Description=ntx S004 cross-sectional momentum on OKX demo #2 (execution exerciser, NOT promotable)
+After=network-online.target time-sync.target
+Wants=network-online.target
+# Never give up (owner, 2026-11-04, after F084): a start limit turned a 19-min
+# glitch into a 38-h outage. RestartSec spaces the retries; exit 2 (a refusal) still
+# stays down; a crash loop is paged by the alerter's stale-snapshot check.
+StartLimitIntervalSec=0
+StartLimitBurst=10
+OnFailure=ntx-alert-crash@%n.service
+
+[Service]
+Type=simple
+User=ntx
+WorkingDirectory=/home/ntx/ntx
+Environment=NTX_VENUE=okx_demo
+# The SECOND demo sub-account. Two nodes on one OKX account fight over the same
+# positions (F046/R51) -- each adopts the other's and the orphan repair closes
+# it, which is exactly how drill trades ended up in the S003 journal (F064).
+# uid 889466589949752560, label 'nautilus2', acctLv=2, IPv6 whitelisted.
+Environment=NTX_KEYSET=demo2
+# The sub-account holds $5,000; size from $1,000 so a single loss is comparable
+# with the S003 soak's. assert_funded still refuses to size above what is there.
+Environment=NTX_EQUITY_OVERRIDE_USD=1000
+Environment=NTX_ATTACH_STOP_AT_ENTRY=false
+ExecStart=/home/ntx/ntx/.venv/bin/python -m ntx.live.node --strategy S004
+Restart=always
+RestartPreventExitStatus=2
+RestartSec=120
+KillSignal=SIGTERM
+TimeoutStopSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+# R44 rehearsal, started 2026-10-06: let nautilus rebuild an opening order it
+# cannot find, so a restart adopts a position rather than abandoning it (F071).
+# Demo only until it is shown to adopt cleanly with no phantoms; promotion to
+# live is one line in ntx-s003.service. See docs/27-open-rehearsals.md.
+Environment=NTX_GENERATE_MISSING_ORDERS=1
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
